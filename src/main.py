@@ -17,8 +17,8 @@ from dotenv import load_dotenv
 
 from src.bot.handlers import buy_tgr_router, common_router, ton_interaction_router
 from src.bot.middlewares import DbSessionMiddleware
-
 from src.tgr_purchase import process_ipn_response
+from src.api.models import IpnResponseData
 
 logging.basicConfig(
     filename='log.txt',
@@ -85,13 +85,10 @@ async def index(request: Request):
 
 
 @app.post('/payment_response')
-async def payment_response(request: Request):
-    logging.info(f'Payment response: {time.asctime()}. Request: {request}')
-    # data = await request.json()
-    data = {}
-    logging.info(f'Request headers: {request.headers}')
-    logging.info(f'Request body: {await request.body()}')
-    logging.info(f'Request data: {data}')
+async def payment_response(ipn_response_data: IpnResponseData):
+    data = ipn_response_data.model_dump()
+    logging.info(f'Payment response: {time.asctime()}. Data: {data}')
+
     async with session_maker() as session:
         result = await process_ipn_response(data, session)
 

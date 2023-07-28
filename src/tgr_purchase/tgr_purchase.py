@@ -123,7 +123,7 @@ async def process_ipn_response(data: dict, session: AsyncSession):
         if transaction:
             return {
                 'type': 'error',
-                'content': f'Error! Order already payed. Recieved {transaction.amount} TGR.',
+                'content': f'Error! Order already payed. Received {transaction.amount} TGR.',
                 'chat_id': chat_id,
             }
 
@@ -165,7 +165,7 @@ async def process_ipn_response(data: dict, session: AsyncSession):
 
     return {
         'type': 'success',
-        'content': f'Payment success! Recieved {tgr_amount} TGR.',
+        'content': f'Payment success! Received {tgr_amount} TGR.',
         'tgr_rate': tgr_rate['content'],
         'cost': paylink.amount,
         'fee': paylink.amount / 100 * FEE_RATE,
