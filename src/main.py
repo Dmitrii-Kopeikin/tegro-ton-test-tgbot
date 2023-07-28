@@ -87,7 +87,8 @@ async def index(request: Request):
 @app.post('/payment_response')
 async def payment_response(request: Request):
     logging.info(f'Payment response: {time.asctime()}. Request: {request}')
-    data = await request.json()
+    # data = await request.json()
+    data = {}
     logging.info(f'Request headers: {request.headers}')
     logging.info(f'Request body: {await request.body()}')
     logging.info(f'Request data: {data}')
