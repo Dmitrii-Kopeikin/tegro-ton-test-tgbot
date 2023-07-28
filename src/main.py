@@ -100,8 +100,8 @@ async def payment_response_get(request: Request):
 
 
 @app.post('/payment_response/')
-async def payment_response(request: Request):
-    logging.info(f'POST Payment response: {time.asctime()}. Data: {await request.body()}')
+async def payment_response(ipn_response: IpnResponseData):
+    # logging.info(f'POST Payment response: {time.asctime()}. Data: {await request.body()}')
     # data = await request.json()
 
     # async with session_maker() as session:
