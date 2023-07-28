@@ -88,6 +88,9 @@ async def index(request: Request):
 async def payment_response(request: Request):
     logging.info(f'Payment response: {time.asctime()}. Request: {request}')
     data = await request.json()
+    logging.info(f'Request headers: {request.headers}')
+    logging.info(f'Request body: {await request.body()}')
+    logging.info(f'Request data: {data}')
     async with session_maker() as session:
         result = await process_ipn_response(data, session)
 
