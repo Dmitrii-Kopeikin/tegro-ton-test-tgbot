@@ -102,7 +102,7 @@ async def payment_response_get(request: Request):
 @app.post('/payment_response/', response_model=IpnResponseData)
 async def payment_response(data: IpnResponseData = Depends(IpnResponseData)):
 
-    data = await data.model_dump()
+    data = data.model_dump()
 
     async with session_maker() as session:
         result = await process_ipn_response(data, session)
