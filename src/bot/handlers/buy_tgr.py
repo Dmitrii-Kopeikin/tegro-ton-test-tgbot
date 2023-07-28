@@ -68,7 +68,7 @@ async def enter_amount_incorrect(message: types.Message):
 
 @router.message(F.text.casefold() == 'yes', TgrInteractionState.approve)
 async def approve_yes(message: types.Message, state: FSMContext, session: AsyncSession):
-    amount = (await state.get_data())["amount"]
+    amount = (await state.get_data())['amount']
 
     result = await buy_TGR_process(amount, message.from_user.id, session)
     if result['type'] == 'error':

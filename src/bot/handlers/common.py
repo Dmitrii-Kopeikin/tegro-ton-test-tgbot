@@ -29,6 +29,7 @@ async def start_handler(message: types.Message, state: FSMContext, session: Asyn
         session.add(User(chat_id=chat_id))
         await session.commit()
 
+    await state.clear()
     await state.set_state(AppState.idle)
 
     await message.reply(

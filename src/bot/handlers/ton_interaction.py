@@ -29,10 +29,10 @@ class TonInteractionStates(StatesGroup):
 
 
 class Action(Enum):
-    SEND_TRANSACTION = 1
-    SEND_TRANSACTION_JETTON = 2
-    GET_BALANCE = 3
-    GET_TRANSACTION = 4
+    SEND_TRANSACTION = 'send_transaction'
+    SEND_TRANSACTION_JETTON = 'send_transaction_jetton'
+    GET_BALANCE = 'get_balance'
+    GET_TRANSACTION = 'get_transaction'
 
 
 AVAILABLE_JETTONS = get_available_jettons()
@@ -124,9 +124,8 @@ async def send_transaction(message: types.Message, state: FSMContext):
     else:
         action = Action.SEND_TRANSACTION_JETTON
 
-    await state.update_data({'action': action})
-
     await state.set_state(TonInteractionStates.enter_address)
+    await state.update_data({'action': action})
 
     await message.answer(
         text=f'Enter destination wallet address',
@@ -178,8 +177,8 @@ async def enter_address(message: types.Message, state: FSMContext):
 
     if action in (Action.SEND_TRANSACTION, Action.SEND_TRANSACTION_JETTON):
         address = message.text
-        await state.update_data({'address': address})
         await state.set_state(TonInteractionStates.enter_amount)
+        await state.update_data({'address': address})
 
         await message.answer(
             text=f'Enter amount',
