@@ -93,23 +93,25 @@ async def index(request: Request):
     }
     return templates.TemplateResponse('index.html', context)
 
+
 @app.get('/payment_response/')
 async def payment_response_get(request: Request):
     logging.info(f'GET Payment response: {time.asctime()}. Data: {request.query_params}')
 
+
 @app.post('/payment_response/')
 async def payment_response(request: Request):
     logging.info(f'POST Payment response: {time.asctime()}. Data: {await request.body()}')
-    data = await request.json()
+    # data = await request.json()
 
-    async with session_maker() as session:
-        result = await process_ipn_response(data, session)
+    # async with session_maker() as session:
+    #     result = await process_ipn_response(data, session)
 
-    chat_id = result['chat_id']
-    await bot.send_message(
-        chat_id=chat_id,
-        text=result['content'],
-    )
+    # chat_id = result['chat_id']
+    # await bot.send_message(
+    #     chat_id=chat_id,
+    #     text=result['content'],
+    # )
     return JSONResponse({'status': 'ok'})
 
 
