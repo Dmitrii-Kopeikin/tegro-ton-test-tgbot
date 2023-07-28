@@ -99,15 +99,15 @@ async def payment_response(ipn_response_data: IpnResponseData):
     data = ipn_response_data.model_dump()
     logging.info(f'Payment response: {time.asctime()}. Data: {data}')
 
-    async with session_maker() as session:
-        result = await process_ipn_response(data, session)
+    # async with session_maker() as session:
+    #     result = await process_ipn_response(data, session)
 
-    chat_id = result['chat_id']
-    await bot.send_message(
-        chat_id=chat_id,
-        text=result['content'],
-    )
-    return {'status': 'ok'}
+    # chat_id = result['chat_id']
+    # await bot.send_message(
+    #     chat_id=chat_id,
+    #     text=result['content'],
+    # )
+    # return {'status': 'ok'}
 
 
 # ==================== App events ====================

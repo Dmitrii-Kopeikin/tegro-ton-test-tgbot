@@ -97,7 +97,7 @@ async def get_tgr_rate():
 async def process_ipn_response(data: dict, session: AsyncSession):
     response_sign = data.pop('sign')
     sign = hashlib.md5(
-        (urllib.parse.urlencode(data) + SECRET_KEY).encode()
+        (urllib.parse.urlencode(sorted(data.items())) + SECRET_KEY).encode()
     ).hexdigest()
 
     chat_id, paylink_id = data['order_id'].split(':')
