@@ -50,7 +50,7 @@ async def buy_tgr(message: types.Message, state: FSMContext):
 async def enter_amount(message: types.Message, state: FSMContext):
     amount = float(message.text)
 
-    await state.update_data(amount=amount)
+    await state.update_data({'amount': amount})
     await state.set_state(TgrInteractionState.approve)
     await message.answer(
         text=f'You want to buy {amount} TGR. Is that correct?',

@@ -92,7 +92,7 @@ async def create_wallet(message: types.Message, state: FSMContext):
 @router.message(F.text.casefold() == 'get balance', TonInteractionStates.ton_choose_action)
 async def get_balance(message: types.Message, state: FSMContext):
     await state.set_state(TonInteractionStates.enter_address)
-    await state.update_data(action=Action.GET_BALANCE)
+    await state.update_data({'action': Action.GET_BALANCE})
 
     await message.answer(
         text=f'Enter wallet address',
@@ -103,7 +103,7 @@ async def get_balance(message: types.Message, state: FSMContext):
 @router.message(F.text.casefold() == 'get transaction', TonInteractionStates.ton_choose_action)
 async def get_transaction(message: types.Message, state: FSMContext):
     await state.set_state(TonInteractionStates.enter_address)
-    await state.update_data(action=Action.GET_TRANSACTION)
+    await state.update_data({'action': Action.GET_TRANSACTION})
 
     await message.answer(
         text=f'Enter transaction address',
@@ -124,7 +124,7 @@ async def send_transaction(message: types.Message, state: FSMContext):
     else:
         action = Action.SEND_TRANSACTION_JETTON
 
-    await state.update_data(action=action)
+    await state.update_data({'action': action})
 
     await state.set_state(TonInteractionStates.enter_address)
 
@@ -178,7 +178,7 @@ async def enter_address(message: types.Message, state: FSMContext):
 
     if action in (Action.SEND_TRANSACTION, Action.SEND_TRANSACTION_JETTON):
         address = message.text
-        await state.update_data(address=address)
+        await state.update_data({'address': address})
         await state.set_state(TonInteractionStates.enter_amount)
 
         await message.answer(
@@ -197,7 +197,7 @@ async def enter_address(message: types.Message, state: FSMContext):
 @router.message(FloatFilter(), TonInteractionStates.enter_amount)
 async def enter_amount(message: types.Message, state: FSMContext):
     amount = float(message.text)
-    await state.update_data(amount=amount)
+    await state.update_data({'amount': amount})
 
     await state.set_state(TonInteractionStates.enter_mnemonics)
     await message.answer(
@@ -209,7 +209,7 @@ async def enter_amount(message: types.Message, state: FSMContext):
 @router.message(MnemonicsFilter(), TonInteractionStates.enter_mnemonics)
 async def enter_mnemonics(message: types.Message, state: FSMContext):
     mnemonics = message.text
-    await state.update_data(mnemonics=mnemonics)
+    await state.update_data({'mnemonics': mnemonics})
 
     if (await state.get_data())['action'] == Action.SEND_TRANSACTION_JETTON:
         await state.set_state(TonInteractionStates.enter_jetton)
@@ -236,7 +236,7 @@ async def enter_mnemonics(message: types.Message, state: FSMContext):
 @router.message(JettonFilter(AVAILABLE_JETTONS), TonInteractionStates.enter_jetton)
 async def enter_jetton(message: types.Message, state: FSMContext):
     jetton = message.text
-    await state.update_data(jetton=jetton)
+    await state.update_data({'jetton': jetton})
 
     data = await state.get_data()
 
