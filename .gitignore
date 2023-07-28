@@ -7,3 +7,5 @@ db.sqlite3
 
 todos.txt
 __pycache__
+
+log.txt

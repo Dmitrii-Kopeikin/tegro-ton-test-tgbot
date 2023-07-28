@@ -10,8 +10,9 @@ from src.bot.keyboards import (
     make_approve_keyboard,
     make_main_menu_keyboard,
 )
-from src.buy_tgr_tools import buy_TGR_process
+from src.tgr_purchase import buy_TGR_process, MIN_LIMIT, MAX_LIMIT
 from src.bot.handlers.common import AppState
+from src.bot.filters import BuyTgrAmountFilter
 
 
 router = Router()
@@ -33,7 +34,6 @@ async def tgr_operations(message: types.Message, state: FSMContext):
     )
 
 
-# @router.message(TgrInteractionState.choose_action)
 @router.message(F.text.casefold() == 'buy tgr', TgrInteractionState.choose_action)
 async def buy_tgr(message: types.Message, state: FSMContext):
     await state.set_state(TgrInteractionState.typing_amount)
@@ -43,14 +43,12 @@ async def buy_tgr(message: types.Message, state: FSMContext):
     )
 
 
-@router.message(TgrInteractionState.typing_amount)
-async def amount_tgr(message: types.Message, state: FSMContext):
-    amount = 0
-    try:
-        amount = float(message.text)
-    except ValueError:
-        await message.answer(text=f'Incorrect amount. Please, try again.')
-        return
+@router.message(
+    TgrInteractionState.typing_amount,
+    BuyTgrAmountFilter(max_limit=MAX_LIMIT, min_limit=MIN_LIMIT),
+)
+async def enter_amount(message: types.Message, state: FSMContext):
+    amount = float(message.text)
 
     await state.update_data(amount=amount)
     await state.set_state(TgrInteractionState.approve)
@@ -60,12 +58,22 @@ async def amount_tgr(message: types.Message, state: FSMContext):
     )
 
 
+@router.message(TgrInteractionState.typing_amount)
+async def enter_amount_incorrect(message: types.Message):
+    await message.answer(
+        text=f'Incorrect amount. Please try again. Min: {MIN_LIMIT}, Max: {MAX_LIMIT}',
+        reply_markup=make_cancel_keyboard(),
+    )
+
+
 @router.message(F.text.casefold() == 'yes', TgrInteractionState.approve)
 async def approve_yes(message: types.Message, state: FSMContext, session: AsyncSession):
     amount = (await state.get_data())["amount"]
 
     result = await buy_TGR_process(amount, message.from_user.id, session)
     if result['type'] == 'error':
+        await state.clear()
+        await state.set_state(AppState.idle)
         await message.answer(
             text=result['content'],
             reply_markup=make_main_menu_keyboard(),

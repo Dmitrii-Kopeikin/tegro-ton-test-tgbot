@@ -12,4 +12,4 @@ class WalletAddressFilter(Filter):
         base64 or base64url.
         Length: 48 symbols.
         '''
-        return re.match(r'^[A-Za-z0-9+/]{48}$|^[A-Za-z0-9_-]{48}$', message.text)
+        return re.match(r'^[A-Za-z0-9+/]{48}$|^[A-Za-z0-9_-]{48}$', message.text.strip())

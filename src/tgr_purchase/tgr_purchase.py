@@ -44,20 +44,20 @@ async def buy_TGR_process(amount: float, chat_id: int, session: AsyncSession):
     if amount < MIN_LIMIT:
         return {
             'type': 'error',
-            'content': f'ОШИБКА! Минимальная сумма для покупки TRG: {MIN_LIMIT}. Повтори попытку.'
+            'content': f'Error! Minimum amount for buying TRG: {MIN_LIMIT}. Try again.'
         }
 
     if amount > MAX_LIMIT:
         return {
             'type': 'error',
-            'content': f'ОШИБКА! Максимальная сумма для покупки TRG: {MAX_LIMIT}. Повтори попытку.'
+            'content': f'Error! Maximum amount for buying TRG: {MAX_LIMIT}. Try again.'
         }
 
-    tgr_rate = await get_tgr_rate()  # TODO: implement this function
+    tgr_rate = await get_tgr_rate()
     if tgr_rate['type'] == 'error':
         return {
             'type': 'error',
-            'content': 'ОШИБКА! Не удалось получить курс TGR/USD. Повтори попытку.'
+            'content': 'Error! Cannot get TGR rate. Try again.'
         }
 
     fee = amount * FEE_RATE
@@ -102,7 +102,7 @@ async def process_ipn_response(data: dict, session: AsyncSession):
     if sign != response_sign:
         return {
             'type': 'error',
-            'content': 'ОШИБКА! Неверная подпись запроса.',
+            'content': 'Error! Invalid sign. Try again.',
             'chat_id': chat_id,
         }
 
@@ -110,7 +110,7 @@ async def process_ipn_response(data: dict, session: AsyncSession):
     if paylink is None:
         return {
             'type': 'error',
-            'content': 'ОШИБКА! Не удалось найти заказ.',
+            'content': 'Error! Cannot find order. Try again.',
             'chat_id': chat_id,
         }
 
@@ -120,7 +120,7 @@ async def process_ipn_response(data: dict, session: AsyncSession):
         if transaction:
             return {
                 'type': 'error',
-                'content': f'ОШИБКА! Заказ уже был оплачен и исполнен. Получено {transaction.amount} TGR.',
+                'content': f'Error! Order already payed. Recieved {transaction.amount} TGR.',
                 'chat_id': chat_id,
             }
 
@@ -128,7 +128,7 @@ async def process_ipn_response(data: dict, session: AsyncSession):
     if tgr_rate['type'] == 'error':
         return {
             'type': 'error',
-            'content': 'ОШИБКА! Не удалось получить курс TGR/USD. Повтори попытку.',
+            'content': 'Error! Cannot get TGR rate. Try again.',
             'chat_id': chat_id,
         }
 
@@ -138,7 +138,7 @@ async def process_ipn_response(data: dict, session: AsyncSession):
     if user is None:
         return {
             'type': 'error',
-            'content': 'ОШИБКА! Не удалось найти пользователя.',
+            'content': 'Error! Cannot find user. Try again.',
             'chat_id': chat_id,
         }
     
@@ -162,7 +162,7 @@ async def process_ipn_response(data: dict, session: AsyncSession):
 
     return {
         'type': 'success',
-        'content': f'Платеж успешно проведен. Получено {tgr_amount} TGR.',
+        'content': f'Payment success! Recieved {tgr_amount} TGR.',
         'tgr_rate': tgr_rate['content'],
         'cost': paylink.amount,
         'fee': paylink.amount / 100 * FEE_RATE,

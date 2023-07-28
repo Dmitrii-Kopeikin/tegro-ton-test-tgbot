@@ -22,14 +22,9 @@ from src.bot.filters import (
 
 class TonInteractionStates(StatesGroup):
     ton_choose_action = State()
-
-    enter_address_get_balance = State()
-    enter_address_get_transaction = State()
-    enter_address_send_transaction = State()
-
+    enter_address = State()
     enter_mnemonics = State()
     enter_amount = State()
-
     enter_jetton = State()
 
 
@@ -96,7 +91,8 @@ async def create_wallet(message: types.Message, state: FSMContext):
 
 @router.message(F.text.casefold() == 'get balance', TonInteractionStates.ton_choose_action)
 async def get_balance(message: types.Message, state: FSMContext):
-    await state.set_state(TonInteractionStates.enter_address_get_balance)
+    await state.set_state(TonInteractionStates.enter_address)
+    await state.update_data(action=Action.GET_BALANCE)
 
     await message.answer(
         text=f'Enter wallet address',
@@ -104,52 +100,14 @@ async def get_balance(message: types.Message, state: FSMContext):
     )
 
 
-@router.message(WalletAddressFilter(), TonInteractionStates.enter_address_get_balance)
-async def enter_address_get_balance(message: types.Message, state: FSMContext):
-    address = message.text
-    ton_client = get_ton_client()
-    response = await ton_client.get_balance(address)
-    if response['status'] == 'success':
-        await state.clear()
-        await state.set_state(AppState.idle)
-        balance = response['result']['balance']
-        await message.answer(
-            text=f'Wallet: {address}\nBalance: {balance}',
-            reply_markup=make_main_menu_keyboard(),
-        )
-        return
-
-    await message.answer(
-        text=f'Error: {response["error"]}. Please, try again',
-    )
-
-
 @router.message(F.text.casefold() == 'get transaction', TonInteractionStates.ton_choose_action)
 async def get_transaction(message: types.Message, state: FSMContext):
-    await state.set_state(TonInteractionStates.enter_address_get_transaction)
+    await state.set_state(TonInteractionStates.enter_address)
+    await state.update_data(action=Action.GET_TRANSACTION)
 
     await message.answer(
         text=f'Enter transaction address',
         reply_markup=make_cancel_keyboard(),
-    )
-
-
-@router.message(WalletAddressFilter(), TonInteractionStates.enter_address_get_transaction)
-async def enter_address_get_transaction(message: types.Message, state: FSMContext):
-    address = message.text
-    ton_client = get_ton_client()
-    response = await ton_client.get_transaction(address)
-    if response['status'] == 'success':
-        await state.clear()
-        await state.set_state(AppState.idle)
-        await message.answer(
-            text=f'Result: {response["result"]}',
-            reply_markup=make_main_menu_keyboard(),
-        )
-        return
-
-    await message.answer(
-        text=f'Error: {response["error"]}. Please, try again',
     )
 
 
@@ -168,7 +126,7 @@ async def send_transaction(message: types.Message, state: FSMContext):
 
     await state.update_data(action=action)
 
-    await state.set_state(TonInteractionStates.enter_address_send_transaction)
+    await state.set_state(TonInteractionStates.enter_address)
 
     await message.answer(
         text=f'Enter destination wallet address',
@@ -176,15 +134,63 @@ async def send_transaction(message: types.Message, state: FSMContext):
     )
 
 
-@router.message(WalletAddressFilter(), TonInteractionStates.enter_address_send_transaction)
-async def enter_address_send_transaction(message: types.Message, state: FSMContext):
-    address = message.text
-    await state.update_data(address=address)
-    await state.set_state(TonInteractionStates.enter_amount)
+@router.message(WalletAddressFilter(), TonInteractionStates.enter_address)
+async def enter_address(message: types.Message, state: FSMContext):
+    address = message.text.strip()
 
+    action = (await state.get_data())['action']
+
+    if action == Action.GET_BALANCE:
+        ton_client = get_ton_client()
+        response = await ton_client.get_balance(address)
+        if response['status'] == 'success':
+            await state.clear()
+            await state.set_state(AppState.idle)
+            balance = response['result']['balance']
+            await message.answer(
+                text=f'Wallet: {address}\nBalance: {balance}',
+                reply_markup=make_main_menu_keyboard(),
+            )
+            return
+
+        await message.answer(
+            text=f'Error: {response["error"]}. Please, try again',
+        )
+        return
+
+    if action == Action.GET_TRANSACTION:
+        address = message.text
+        ton_client = get_ton_client()
+        response = await ton_client.get_transaction(address)
+        if response['status'] == 'success':
+            await state.clear()
+            await state.set_state(AppState.idle)
+            await message.answer(
+                text=f'Result: {response["result"]}',
+                reply_markup=make_main_menu_keyboard(),
+            )
+            return
+
+        await message.answer(
+            text=f'Error: {response["error"]}. Please, try again',
+        )
+        return
+
+    if action in (Action.SEND_TRANSACTION, Action.SEND_TRANSACTION_JETTON):
+        address = message.text
+        await state.update_data(address=address)
+        await state.set_state(TonInteractionStates.enter_amount)
+
+        await message.answer(
+            text=f'Enter amount',
+            reply_markup=make_cancel_keyboard(),
+        )
+        return
+
+    state.clear()
+    state.set_state(AppState.idle)
     await message.answer(
-        text=f'Enter amount',
-        reply_markup=make_cancel_keyboard(),
+        text=f'Error: unknown action. Please, try again',
     )
 
 
@@ -266,13 +272,7 @@ async def enter_amount_incorrect(message: types.Message, state: FSMContext):
     )
 
 
-@router.message(
-    or_f(
-        TonInteractionStates.enter_address_get_balance,
-        TonInteractionStates.enter_address_get_transaction,
-        TonInteractionStates.enter_address_send_transaction,
-    ),
-)
+@router.message(TonInteractionStates.enter_address)
 async def enter_address_incorrect(message: types.Message, state: FSMContext):
     await message.answer(
         text=f'Error: invalid address. Please, check the address and try again.',
@@ -286,7 +286,9 @@ async def process_send_transaction(data: dict):
 
     ton_client = get_ton_client()
 
-    response = await ton_client.send_transaction(address, amount, mnemonics)
+    response = await ton_client.send_transaction(
+        to_address=address, amount=amount, mnemonics=mnemonics
+    )
 
     if response['status'] == 'success':
         return response['result']
@@ -301,7 +303,9 @@ async def process_send_transaction_jetton(data: dict):
 
     ton_client = get_ton_client()
 
-    response = await ton_client.send_transaction_jetton(address, amount, mnemonics, jetton)
+    response = await ton_client.send_transaction_jetton(
+        to_address=address, amount=amount, mnemonics=mnemonics, jetton=jetton
+    )
 
     if response['status'] == 'success':
         return response['result']

@@ -46,12 +46,3 @@ async def cancel_handler(message: types.Message, state: FSMContext):
         text=f"Canceled.",
         reply_markup=make_main_menu_keyboard(),
     )
-
-
-@router.message(Command(commands=['get_state']))
-# For debug
-async def get_state_handler(message: types.Message, state: FSMContext):
-    current_state = await state.get_state()
-    await message.reply(
-        text=f"Current state: {current_state}"
-    )
