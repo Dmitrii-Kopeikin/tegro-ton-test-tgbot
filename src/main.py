@@ -7,7 +7,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.fsm.storage.redis import RedisStorage
 
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
@@ -100,18 +100,17 @@ async def payment_response_get(request: Request):
 @app.post('/payment_response/')
 async def payment_response(request: Request):
     logging.info(f'POST Payment response: {time.asctime()}. Data: {await request.body()}')
-    # data = ipn_response_data.model_dump()
-    # logging.info(f'Payment response: {time.asctime()}. Data: {data}')
+    data = await request.json()
 
-    # async with session_maker() as session:
-    #     result = await process_ipn_response(data, session)
+    async with session_maker() as session:
+        result = await process_ipn_response(data, session)
 
-    # chat_id = result['chat_id']
-    # await bot.send_message(
-    #     chat_id=chat_id,
-    #     text=result['content'],
-    # )
-    # return {'status': 'ok'}
+    chat_id = result['chat_id']
+    await bot.send_message(
+        chat_id=chat_id,
+        text=result['content'],
+    )
+    return JSONResponse({'status': 'ok'})
 
 
 # ==================== App events ====================
