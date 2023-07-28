@@ -28,7 +28,7 @@ class TonInteractionStates(StatesGroup):
     enter_jetton = State()
 
 
-class Action(Enum):
+class Action(str, Enum):
     SEND_TRANSACTION = 'send_transaction'
     SEND_TRANSACTION_JETTON = 'send_transaction_jetton'
     GET_BALANCE = 'get_balance'
