@@ -79,7 +79,7 @@ templates = Jinja2Templates(directory="src/templates")
 
 
 # ==================== HTTP endpoints ====================
-@app.post(WEBHOOK_PATH)
+@app.post(WEBHOOK_PATH, include_in_schema=False)
 async def bot_webhook(update: dict):
     telegram_update = types.Update(**update)
     await dp.feed_update(bot=bot, update=telegram_update)
@@ -94,7 +94,7 @@ async def index(request: Request):
     return templates.TemplateResponse('index.html', context)
 
 
-@app.post('/payment_response/', include_in_schema=False)
+@app.post('/payment_response/')
 async def payment_response(ipn_response_data: IpnResponseData):
     data = ipn_response_data.model_dump()
     logging.info(f'Payment response: {time.asctime()}. Data: {data}')
