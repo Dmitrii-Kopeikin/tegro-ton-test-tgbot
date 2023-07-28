@@ -99,7 +99,7 @@ async def payment_response_get(request: Request):
 
 @app.post('/payment_response/')
 async def payment_response(request: Request):
-    logging.info(f'POST Payment response: {time.asctime()}. Data: {await request.body}')
+    logging.info(f'POST Payment response: {time.asctime()}. Data: {await request.body()}')
     # data = ipn_response_data.model_dump()
     # logging.info(f'Payment response: {time.asctime()}. Data: {data}')
 
