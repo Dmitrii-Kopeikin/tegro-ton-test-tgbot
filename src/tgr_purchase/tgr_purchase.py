@@ -1,7 +1,4 @@
-import hashlib
-import time
-import os
-import httpx
+import hashlib, time, os, httpx, urllib.parse
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -32,9 +29,7 @@ def create_link(amount: int, order_id: int):
     if PAYMENT_TEST_MODE:
         data['test'] = 1
 
-    data_str = '&'.join([f'{key}={value}' for key, value in sorted(data.items())])
-
-    sign = hashlib.md5((data_str + SECRET_KEY).encode('utf-8')).hexdigest()
+    sign = hashlib.md5(urllib.parse.urlencode(sorted(data.items()))).hexdigest()
     data_str += f'&sign={sign}'
 
     return f'{URL}/?{data_str}'

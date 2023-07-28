@@ -1,5 +1,5 @@
 import httpx
-import urllib
+import urllib.parse
 import os
 
 from typing import List
