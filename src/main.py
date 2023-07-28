@@ -93,11 +93,15 @@ async def index(request: Request):
     }
     return templates.TemplateResponse('index.html', context)
 
+@app.get('/payment_response/')
+async def payment_response_get(request: Request):
+    logging.info(f'GET Payment response: {time.asctime()}. Data: {request.query_params}')
 
 @app.post('/payment_response/')
-async def payment_response(ipn_response_data: IpnResponseData):
-    data = ipn_response_data.model_dump()
-    logging.info(f'Payment response: {time.asctime()}. Data: {data}')
+async def payment_response(request: Request):
+    logging.info(f'POST Payment response: {time.asctime()}. Data: {await request.body}')
+    # data = ipn_response_data.model_dump()
+    # logging.info(f'Payment response: {time.asctime()}. Data: {data}')
 
     # async with session_maker() as session:
     #     result = await process_ipn_response(data, session)
