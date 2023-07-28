@@ -1,0 +1,9 @@
+.venv
+.vscode
+
+.env
+
+db.sqlite3
+
+todos.txt
+__pycache__
