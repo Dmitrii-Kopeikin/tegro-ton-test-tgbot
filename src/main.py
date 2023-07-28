@@ -10,6 +10,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from fastapi.middleware.cors import CORSMiddleware
 
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
@@ -64,6 +65,15 @@ dp.include_router(ton_interaction_router)
 
 # ==================== FastAPI ====================
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=['*'],
+    allow_credentials=True,
+    allow_methods=['*'],
+    allow_headers=['*'],
+)
+
 app.mount("/static", StaticFiles(directory="src/static"), name="static")
 templates = Jinja2Templates(directory="src/templates")
 
@@ -84,7 +94,7 @@ async def index(request: Request):
     return templates.TemplateResponse('index.html', context)
 
 
-@app.post('/payment_response')
+@app.post('/payment_response/', include_in_schema=False)
 async def payment_response(ipn_response_data: IpnResponseData):
     data = ipn_response_data.model_dump()
     logging.info(f'Payment response: {time.asctime()}. Data: {data}')
