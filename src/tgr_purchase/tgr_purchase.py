@@ -33,12 +33,13 @@ def create_link(amount: int, order_id: int):
     if PAYMENT_TEST_MODE:
         data['test'] = 1
 
+    query_str = urllib.parse.urlencode(sorted(data.items()))
     sign = hashlib.md5(
-        (urllib.parse.urlencode(sorted(data.items())) + SECRET_KEY).encode()
+        (query_str + SECRET_KEY).encode()
     ).hexdigest()
-    data_str += f'&sign={sign}'
+    query_str += f'&sign={sign}'
 
-    return f'{URL}/?{data_str}'
+    return f'{URL}/?{query_str}'
 
 
 async def buy_TGR_process(amount: float, chat_id: int, session: AsyncSession):
