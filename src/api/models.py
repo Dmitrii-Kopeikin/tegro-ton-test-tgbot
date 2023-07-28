@@ -1,7 +1,10 @@
-from fastapi import FastAPI
+from fastapi import Form
 from pydantic import BaseModel
 
+from .decorators import form_body
 
+
+@form_body
 class IpnResponseData(BaseModel):
     id: str
     shop_id: str
